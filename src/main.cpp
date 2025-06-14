@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <algorithm>
 
 std::vector<std::string> parseInput(const std::string& input) {
   std::vector<std::string> tokens;
@@ -13,6 +14,17 @@ std::vector<std::string> parseInput(const std::string& input) {
   }
 
   return tokens;
+}
+
+const std::vector<std::string> BUILTIN_COMMANDS = {
+  "exit",
+  "echo",
+  "type"
+};
+
+bool is_builtin(const std::string& command) {
+    return std::find(BUILTIN_COMMANDS.begin(), BUILTIN_COMMANDS.end(), command) 
+           != BUILTIN_COMMANDS.end();
 }
 
 int main() {
@@ -41,6 +53,12 @@ int main() {
             std::cout << arg << " ";
           }
           std::cout << "\n";
+        }
+      } else if (command == "type") {
+        if (args.size() == 1 && is_builtin(args[0])) {
+          std::cout << args[0] << " is a shell builtin\n";
+        } else {
+          std::cout << args[0] << ": not found\n";
         }
       } else {
         std::cout << input << ": command not found\n";

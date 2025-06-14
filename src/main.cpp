@@ -1,5 +1,19 @@
 #include <iostream>
 #include <string>
+#include <vector>
+#include <sstream>
+
+std::vector<std::string> parseInput(const std::string& input) {
+  std::vector<std::string> tokens;
+  std::istringstream iss(input);
+  std::string token;
+
+  while (iss >> token) {
+    tokens.push_back(token);
+  }
+
+  return tokens;
+}
 
 int main() {
   // Flush after every std::cout / std:cerr
@@ -10,6 +24,18 @@ int main() {
   while (true) {
     std::cout << "$ ";
     std::getline(std::cin, input);
-    std::cout << input << ": command not found" << std::endl; 
+
+    std::vector<std::string> tokens = parseInput(input);
+
+    if (!tokens.empty()) {
+      std::string command = tokens[0];
+      std::vector<std::string> args(tokens.begin() + 1, tokens.end());
+
+      if (command == "exit" && args.size() == 1 && args[0] == "0") {
+        break;
+      } else {
+        std::cout << input << ": command not found\n";
+      }
+    }
   }
 }

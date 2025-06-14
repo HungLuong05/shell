@@ -45,7 +45,6 @@ std::string find_in_path(const std::string& command) {
     if (dir.empty()) continue;
 
     std::string full_path = dir + "/" + command;
-    std::cout << "Checking: " << full_path << "\n";
     if (is_executable(full_path)) {
       return full_path;
     }

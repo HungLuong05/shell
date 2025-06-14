@@ -33,6 +33,15 @@ int main() {
 
       if (command == "exit" && args.size() == 1 && args[0] == "0") {
         break;
+      } else if (command == "echo") {
+        if (args.empty()) {
+          std::cout << "\n";
+        } else {
+          for (const auto& arg : args) {
+            std::cout << arg << " ";
+          }
+          std::cout << "\n";
+        }
       } else {
         std::cout << input << ": command not found\n";
       }

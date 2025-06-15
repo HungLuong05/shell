@@ -94,7 +94,7 @@ int main() {
           }
         }
       } else if (command == "pwd") {
-        std::cout << std::filesystem::current_path() << "\n";
+        std::cout << std::filesystem::current_path().string() << "\n";
       } else {
         std::string path = find_in_path(command);
         if (!path.empty()) {

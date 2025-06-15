@@ -21,7 +21,8 @@ std::vector<std::string> parseInput(const std::string& input) {
 const std::vector<std::string> BUILTIN_COMMANDS = {
   "exit",
   "echo",
-  "type"
+  "type",
+  "pwd"
 };
 
 bool is_builtin(const std::string& command) {
@@ -92,20 +93,11 @@ int main() {
             std::cout << args[0] << ": not found\n";
           }
         }
+      } else if (command == "pwd") {
+        std::cout << std::filesystem::current_path() << "\n";
       } else {
         std::string path = find_in_path(command);
         if (!path.empty()) {
-          // std::cout << "Program was passed " << args.size() + 1 << " args (including program name).\n";
-          // std::cout << "Arg #0 (program name): " << command << "\n";
-          // for (size_t i = 0; i < args.size(); ++i) {
-          //   std::cout << "Arg #" << (i + 1) << ": " << args[i] << "\n";
-          // }
-          // std::random_device rd;
-          // std::mt19937 gen(rd());
-          // std::uniform_int_distribution<int> dist(1, 1e9);
-          // int random_int = dist(gen);
-
-          // std::cout << "Program Signature: " << random_int << "\n";
           int res = system(input.c_str());
         } else {
           std::cout << command << ": command not found\n";

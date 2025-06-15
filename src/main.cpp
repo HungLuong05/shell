@@ -97,8 +97,13 @@ int main() {
       } else if (command == "pwd") {
         std::cout << std::filesystem::current_path().string() << "\n";
       } else if (command == "cd") {
+        std::string target_dir = args[0];
+        if (args[0] == "~") {
+          target_dir = getenv("HOME");
+        }
+
         try {
-          std::filesystem::current_path(args[0]);
+          std::filesystem::current_path(target_dir);
         } catch (const std::filesystem::filesystem_error& e) {
           std::cerr << "cd: " << args[0] << ": No such file or directory \n";
         }

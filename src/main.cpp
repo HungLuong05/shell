@@ -97,7 +97,11 @@ int main() {
       } else if (command == "pwd") {
         std::cout << std::filesystem::current_path().string() << "\n";
       } else if (command == "cd") {
-        std::filesystem::current_path(args[0]);
+        try {
+          std::filesystem::current_path(args[0]);
+        } catch (const std::filesystem::filesystem_error& e) {
+          std::cerr << "cd: " << args[0] << ": No such file or directory \n";
+        }
       } else {
         std::string path = find_in_path(command);
         if (!path.empty()) {

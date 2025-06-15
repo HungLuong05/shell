@@ -10,17 +10,24 @@ std::vector<std::string> parseInput(const std::string& input) {
   std::vector<std::string> args;
   std::string current_arg;
   bool in_single_quotes = false;
+  bool in_double_quotes = false;
 
   for (size_t i = 0; i < input.length(); i++) {
     char c = input[i];
 
-    if (c == '\'') {
-      if (!in_single_quotes) {
-        in_single_quotes = true;
+    if (c == '\'' && !in_double_quotes) {
+      in_single_quotes = !in_single_quotes;
+    } else if (c == '"' && !in_single_quotes) {
+      in_double_quotes = !in_double_quotes;
+    } else if (c == '\\' && in_double_quotes && i + 1 < input.length()) {
+      char nxt = input[i + 1];
+      if (nxt == '\\' || nxt == '$' || nxt == '"' || nxt == '\n') {
+        current_arg += nxt;
+        i++;
       } else {
-        in_single_quotes = false;
+        current_arg += c;
       }
-    } else if (c == ' ' && !in_single_quotes) {
+    } else if (c == ' ' && !in_single_quotes && !in_double_quotes) {
       if (!current_arg.empty()) {
         args.push_back(current_arg);
         current_arg.clear();

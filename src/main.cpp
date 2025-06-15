@@ -7,15 +7,34 @@
 #include <filesystem>
 
 std::vector<std::string> parseInput(const std::string& input) {
-  std::vector<std::string> tokens;
-  std::istringstream iss(input);
-  std::string token;
+  std::vector<std::string> args;
+  std::string current_arg;
+  bool in_single_quotes = false;
 
-  while (iss >> token) {
-    tokens.push_back(token);
+  for (size_t i = 0; i < input.length(); i++) {
+    char c = input[i];
+
+    if (c == '\'') {
+      if (!in_single_quotes) {
+        in_single_quotes = true;
+      } else {
+        in_single_quotes = false;
+      }
+    } else if (c == ' ' && !in_single_quotes) {
+      if (!current_arg.empty()) {
+        args.push_back(current_arg);
+        current_arg.clear();
+      }
+    } else {
+      current_arg += c;
+    }
   }
 
-  return tokens;
+  if (!current_arg.empty()) {
+    args.push_back(current_arg);
+  }
+
+  return args;
 }
 
 const std::vector<std::string> BUILTIN_COMMANDS = {

@@ -22,7 +22,8 @@ const std::vector<std::string> BUILTIN_COMMANDS = {
   "exit",
   "echo",
   "type",
-  "pwd"
+  "pwd",
+  "cd"
 };
 
 bool is_builtin(const std::string& command) {
@@ -95,6 +96,8 @@ int main() {
         }
       } else if (command == "pwd") {
         std::cout << std::filesystem::current_path().string() << "\n";
+      } else if (command == "cd") {
+        std::filesystem::current_path(args[0]);
       } else {
         std::string path = find_in_path(command);
         if (!path.empty()) {

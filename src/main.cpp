@@ -71,6 +71,8 @@ Command parseCommand(std::vector<std::string>& tokens) {
       cmd.args.push_back(token);
     }
   }
+
+  return cmd;
 }
 
 const std::vector<std::string> BUILTIN_COMMANDS = {
@@ -124,11 +126,10 @@ int main() {
     std::vector<std::string> tokens = parseInput(input);
     Command cmd = parseCommand(tokens);
 
-    std::ostream* output = &std::cout;
-    if (cmd.has_output_redirect) {
-      std::ofstream output_file(cmd.output_file);
-      output = &output_file;
-    }
+    std::ofstream output_file;
+    std::ostream& output = cmd.has_output_redirect ? 
+                          (output_file.open(cmd.output_file), output_file) : 
+                          std::cout;
 
     if (!tokens.empty()) {
       std::string command = cmd.args[0];
@@ -137,26 +138,26 @@ int main() {
         break;
       } else if (command == "echo") {
         if (cmd.args.size() == 1) {
-          *output << "\n";
+          output << "\n";
         } else {
           for (size_t i = 1; i < cmd.args.size(); i++) {
-            std::cout << cmd.args[i] << " ";
+            output << cmd.args[i] << " ";
           }
-          std::cout << "\n";
+          output << "\n";
         }
       } else if (command == "type") {
         if (cmd.args.size() == 2 && is_builtin(cmd.args[1])) {
-          std::cout << cmd.args[1] << " is a shell builtin\n";
+          output << cmd.args[1] << " is a shell builtin\n";
         } else {
           std::string path = find_in_path(cmd.args[1]);
           if (!path.empty()) {
-            std::cout << cmd.args[1] << " is " << path << "\n";
+            output << cmd.args[1] << " is " << path << "\n";
           } else {
-            std::cout << cmd.args[1] << ": not found\n";
+            output << cmd.args[1] << ": not found\n";
           }
         }
       } else if (command == "pwd") {
-        std::cout << std::filesystem::current_path().string() << "\n";
+        output << std::filesystem::current_path().string() << "\n";
       } else if (command == "cd") {
         std::string target_dir = cmd.args[1];
         if (cmd.args[1] == "~") {
@@ -173,7 +174,7 @@ int main() {
         if (!path.empty()) {
           int res = system(input.c_str());
         } else {
-          std::cout << command << ": command not found\n";
+          output << command << ": command not found\n";
         }
       }
     }

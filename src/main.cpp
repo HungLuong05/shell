@@ -14,6 +14,7 @@ struct Command {
   bool output_append = false;
   std::string error_file;
   bool has_error_redirect = false;
+  bool error_append = false;
 };
 
 std::vector<std::string> parseInput(const std::string& input) {
@@ -85,6 +86,13 @@ Command parseCommand(std::vector<std::string>& tokens) {
         cmd.output_append = true;
         i++;
       }
+    } else if (token == "2>>") {
+      if (i + 1 < tokens.size()) {
+        cmd.error_file = tokens[i + 1];
+        cmd.has_error_redirect = true;
+        cmd.error_append = true;
+        i++;
+      }
     } else {
       cmd.args.push_back(token);
     }
@@ -148,9 +156,9 @@ int main() {
     std::ostream& output = [&]() -> std::ostream& {
       if (cmd.has_output_redirect) {
         if (cmd.output_append) {
-          output_file.open(cmd.output_file, std::ios::app);  // Append mode
+          output_file.open(cmd.output_file, std::ios::app);
         } else {
-          output_file.open(cmd.output_file);  // Write mode (truncate)
+          output_file.open(cmd.output_file);
         }
         return output_file;
       }
@@ -158,9 +166,17 @@ int main() {
     }();
 
     std::ofstream error_file;
-    std::ostream& error_output = cmd.has_error_redirect ? 
-                                 (error_file.open(cmd.error_file), error_file) : 
-                                 std::cerr;
+    std::ostream& error_output = [&]() -> std::ostream& {
+      if (cmd.has_error_redirect) {
+        if (cmd.error_append) {
+          error_file.open(cmd.error_file, std::ios::app);
+        } else {
+          error_file.open(cmd.error_file);
+        }
+        return error_file;
+      }
+      return std::cerr;
+    }();
 
     if (!tokens.empty()) {
       std::string command = cmd.args[0];

@@ -2,9 +2,16 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <fstream>
 #include <algorithm>
 #include <sys/stat.h>
 #include <filesystem>
+
+struct Command {
+  std::vector<std::string> args;
+  std::string output_file;
+  bool has_output_redirect = false;
+};
 
 std::vector<std::string> parseInput(const std::string& input) {
   std::vector<std::string> args;
@@ -46,6 +53,24 @@ std::vector<std::string> parseInput(const std::string& input) {
   }
 
   return args;
+}
+
+Command parseCommand(std::vector<std::string>& tokens) {
+  Command cmd;
+
+  for (size_t i = 0; i < tokens.size(); i++) {
+    const std::string& token = tokens[i];
+
+    if (token == ">" || token == "1>") {
+      if (i + 1 < tokens.size()) {
+        cmd.output_file = tokens[i + 1];
+        cmd.has_output_redirect = true;
+        i++;
+      }
+    } else {
+      cmd.args.push_back(token);
+    }
+  }
 }
 
 const std::vector<std::string> BUILTIN_COMMANDS = {
@@ -97,45 +122,51 @@ int main() {
     std::getline(std::cin, input);
 
     std::vector<std::string> tokens = parseInput(input);
+    Command cmd = parseCommand(tokens);
+
+    std::ostream* output = &std::cout;
+    if (cmd.has_output_redirect) {
+      std::ofstream output_file(cmd.output_file);
+      output = &output_file;
+    }
 
     if (!tokens.empty()) {
-      std::string command = tokens[0];
-      std::vector<std::string> args(tokens.begin() + 1, tokens.end());
+      std::string command = cmd.args[0];
 
-      if (command == "exit" && args.size() == 1 && args[0] == "0") {
+      if (command == "exit" && cmd.args.size() == 2 && cmd.args[1] == "0") {
         break;
       } else if (command == "echo") {
-        if (args.empty()) {
-          std::cout << "\n";
+        if (cmd.args.size() == 1) {
+          *output << "\n";
         } else {
-          for (const auto& arg : args) {
-            std::cout << arg << " ";
+          for (size_t i = 1; i < cmd.args.size(); i++) {
+            std::cout << cmd.args[i] << " ";
           }
           std::cout << "\n";
         }
       } else if (command == "type") {
-        if (args.size() == 1 && is_builtin(args[0])) {
-          std::cout << args[0] << " is a shell builtin\n";
+        if (cmd.args.size() == 2 && is_builtin(cmd.args[1])) {
+          std::cout << cmd.args[1] << " is a shell builtin\n";
         } else {
-          std::string path = find_in_path(args[0]);
+          std::string path = find_in_path(cmd.args[1]);
           if (!path.empty()) {
-            std::cout << args[0] << " is " << path << "\n";
+            std::cout << cmd.args[1] << " is " << path << "\n";
           } else {
-            std::cout << args[0] << ": not found\n";
+            std::cout << cmd.args[1] << ": not found\n";
           }
         }
       } else if (command == "pwd") {
         std::cout << std::filesystem::current_path().string() << "\n";
       } else if (command == "cd") {
-        std::string target_dir = args[0];
-        if (args[0] == "~") {
+        std::string target_dir = cmd.args[1];
+        if (cmd.args[1] == "~") {
           target_dir = getenv("HOME");
         }
 
         try {
           std::filesystem::current_path(target_dir);
         } catch (const std::filesystem::filesystem_error& e) {
-          std::cerr << "cd: " << args[0] << ": No such file or directory \n";
+          std::cerr << "cd: " << cmd.args[1] << ": No such file or directory \n";
         }
       } else {
         std::string path = find_in_path(command);

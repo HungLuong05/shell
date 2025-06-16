@@ -11,6 +11,8 @@ struct Command {
   std::vector<std::string> args;
   std::string output_file;
   bool has_output_redirect = false;
+  std::string error_file;
+  bool has_error_redirect = false;
 };
 
 std::vector<std::string> parseInput(const std::string& input) {
@@ -65,6 +67,12 @@ Command parseCommand(std::vector<std::string>& tokens) {
       if (i + 1 < tokens.size()) {
         cmd.output_file = tokens[i + 1];
         cmd.has_output_redirect = true;
+        i++;
+      }
+    } else if (token == "2>") {
+      if (i + 1 < tokens.size()) {
+        cmd.error_file = tokens[i + 1];
+        cmd.has_error_redirect = true;
         i++;
       }
     } else {
@@ -130,6 +138,10 @@ int main() {
     std::ostream& output = cmd.has_output_redirect ? 
                           (output_file.open(cmd.output_file), output_file) : 
                           std::cout;
+    std::ofstream error_file;
+    std::ostream& error_output = cmd.has_error_redirect ? 
+                                 (error_file.open(cmd.error_file), error_file) : 
+                                 std::cerr;
 
     if (!tokens.empty()) {
       std::string command = cmd.args[0];
@@ -153,7 +165,7 @@ int main() {
           if (!path.empty()) {
             output << cmd.args[1] << " is " << path << "\n";
           } else {
-            output << cmd.args[1] << ": not found\n";
+            error_output << cmd.args[1] << ": not found\n";
           }
         }
       } else if (command == "pwd") {
@@ -167,14 +179,14 @@ int main() {
         try {
           std::filesystem::current_path(target_dir);
         } catch (const std::filesystem::filesystem_error& e) {
-          std::cerr << "cd: " << cmd.args[1] << ": No such file or directory \n";
+          error_output << "cd: " << cmd.args[1] << ": No such file or directory \n";
         }
       } else {
         std::string path = find_in_path(command);
         if (!path.empty()) {
           int res = system(input.c_str());
         } else {
-          output << command << ": command not found\n";
+          error_output << command << ": command not found\n";
         }
       }
     }

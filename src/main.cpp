@@ -78,7 +78,7 @@ Command parseCommand(std::vector<std::string>& tokens) {
         cmd.output_append = false;
         i++;
       }
-    } else if (token == "1>>") {
+    } else if (token == "1>>" || token == ">>") {
       if (i + 1 < tokens.size()) {
         cmd.output_file = tokens[i + 1];
         cmd.has_output_redirect = true;

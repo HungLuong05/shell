@@ -11,6 +11,7 @@ struct Command {
   std::vector<std::string> args;
   std::string output_file;
   bool has_output_redirect = false;
+  bool output_append = false;
   std::string error_file;
   bool has_error_redirect = false;
 };
@@ -75,7 +76,15 @@ Command parseCommand(std::vector<std::string>& tokens) {
         cmd.has_error_redirect = true;
         i++;
       }
-    } else {
+    } else if (token == "1>>") {
+      if (i + 1 < tokens.size()) {
+        cmd.output_file = tokens[i + 1];
+        cmd.has_output_redirect = true;
+        cmd.output_append = true;
+      }
+    }
+    
+    else {
       cmd.args.push_back(token);
     }
   }
@@ -135,9 +144,18 @@ int main() {
     Command cmd = parseCommand(tokens);
 
     std::ofstream output_file;
-    std::ostream& output = cmd.has_output_redirect ? 
-                          (output_file.open(cmd.output_file), output_file) : 
-                          std::cout;
+    std::ostream& output = [&]() -> std::ostream& {
+      if (cmd.has_output_redirect) {
+        if (cmd.output_append) {
+          output_file.open(cmd.output_file, std::ios::app);  // Append mode
+        } else {
+          output_file.open(cmd.output_file);  // Write mode (truncate)
+        }
+        return output_file;
+      }
+      return std::cout;
+    }();
+    
     std::ofstream error_file;
     std::ostream& error_output = cmd.has_error_redirect ? 
                                  (error_file.open(cmd.error_file), error_file) : 

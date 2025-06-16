@@ -68,12 +68,14 @@ Command parseCommand(std::vector<std::string>& tokens) {
       if (i + 1 < tokens.size()) {
         cmd.output_file = tokens[i + 1];
         cmd.has_output_redirect = true;
+        cmd.output_append = false;
         i++;
       }
     } else if (token == "2>") {
       if (i + 1 < tokens.size()) {
         cmd.error_file = tokens[i + 1];
         cmd.has_error_redirect = true;
+        cmd.output_append = false;
         i++;
       }
     } else if (token == "1>>") {
@@ -82,9 +84,7 @@ Command parseCommand(std::vector<std::string>& tokens) {
         cmd.has_output_redirect = true;
         cmd.output_append = true;
       }
-    }
-    
-    else {
+    } else {
       cmd.args.push_back(token);
     }
   }
@@ -155,7 +155,7 @@ int main() {
       }
       return std::cout;
     }();
-    
+
     std::ofstream error_file;
     std::ostream& error_output = cmd.has_error_redirect ? 
                                  (error_file.open(cmd.error_file), error_file) : 

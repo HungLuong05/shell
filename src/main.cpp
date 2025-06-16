@@ -144,12 +144,6 @@ int main() {
     std::vector<std::string> tokens = parseInput(input);
     Command cmd = parseCommand(tokens);
 
-    for (auto arg: cmd.args) {
-      std::cout << "Arg: " << arg << "\n";
-    }
-
-    continue;
-
     std::ofstream output_file;
     std::ostream& output = [&]() -> std::ostream& {
       if (cmd.has_output_redirect) {

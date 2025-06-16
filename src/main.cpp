@@ -27,6 +27,10 @@ std::vector<std::string> parseInput(const std::string& input) {
       } else {
         current_arg += c;
       }
+    } else if (c == '\\' && !in_double_quotes && !in_single_quotes && i + 1 < input.length()) {
+      char nxt = input[i + 1];
+      current_arg += nxt;
+      i++;
     } else if (c == ' ' && !in_single_quotes && !in_double_quotes) {
       if (!current_arg.empty()) {
         args.push_back(current_arg);

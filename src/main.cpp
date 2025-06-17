@@ -141,21 +141,55 @@ std::string find_in_path(const std::string& command) {
   return "";
 }
 
-const std::vector<std::string> ARGUMENTS = {
-  "exit", "echo"
-};
+static std::vector<std::string> PATH_COMMANDS;
+
+std::vector<std::string> get_path_commands() {
+  std::vector<std::string> commands;
+  const char* path_env = getenv("PATH");
+  if (!path_env) return commands;
+
+  std::string path(path_env);
+  std::istringstream iss(path);
+  std::string dir;
+
+  while (std::getline(iss, dir, ':')) {
+    if (dir.empty()) continue;
+
+    try {
+      for (const auto& entry : std::filesystem::directory_iterator(dir)) {
+        if (entry.is_regular_file() && is_executable(entry.path().string())) {
+          commands.push_back(entry.path().filename().string());
+        }
+      }
+    } catch (const std::filesystem::filesystem_error& e) {
+      // Ignore errors in directory iteration
+    }
+  }
+
+  std::sort(commands.begin(), commands.end());
+  commands.erase(std::unique(commands.begin(), commands.end()), commands.end());
+  return commands;
+}
 
 char* command_generator(const char* text, int state) {
-  static size_t list_index;
+  static size_t builtin_index = 0, path_index = 0;
   static std::string current_text;
 
   if (state == 0) {
-    list_index = 0;
+    builtin_index = 0;
+    path_index = 0;
     current_text = text;
   }
 
-  while (list_index < ARGUMENTS.size()) {
-    const std::string& arg = ARGUMENTS[list_index++];
+  while (builtin_index < BUILTIN_COMMANDS.size()) {
+    const std::string& arg = BUILTIN_COMMANDS[builtin_index++];
+    if (arg.compare(0, current_text.size(), current_text) == 0) {
+      return strdup(arg.c_str());
+    }
+  }
+
+  while (path_index < PATH_COMMANDS.size()) {
+    const std::string& arg = PATH_COMMANDS[path_index++];
     if (arg.compare(0, current_text.size(), current_text) == 0) {
       return strdup(arg.c_str());
     }
@@ -175,6 +209,8 @@ int main() {
   std::cerr << std::unitbuf;
 
   rl_attempted_completion_function = command_completion;
+
+  PATH_COMMANDS = get_path_commands();
 
   std::string input;
   while (true) {

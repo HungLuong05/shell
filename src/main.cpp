@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <sys/stat.h>
 #include <filesystem>
+#include <readline/readline.h>
+#include <cstring>
 
 struct Command {
   std::vector<std::string> args;
@@ -139,15 +141,52 @@ std::string find_in_path(const std::string& command) {
   return "";
 }
 
+const std::vector<std::string> ARGUMENTS = {
+  "exit", "echo"
+};
+
+char* command_generator(const char* text, int state) {
+  static size_t list_index;
+  static std::string current_text;
+
+  if (state == 0) {
+    list_index = 0;
+    current_text = text;
+  }
+
+  while (list_index < ARGUMENTS.size()) {
+    const std::string& arg = ARGUMENTS[list_index++];
+    if (arg.compare(0, current_text.size(), current_text) == 0) {
+      return strdup(arg.c_str());
+    }
+  }
+
+  return nullptr;
+}
+
+char** command_completion(const char* text, int start, int end) {
+  rl_attempted_completion_over = 1;
+  return rl_completion_matches(text, command_generator);
+}
+
 int main() {
   // Flush after every std::cout / std:cerr
   std::cout << std::unitbuf;
   std::cerr << std::unitbuf;
 
+  rl_attempted_completion_function = command_completion;
+
   std::string input;
   while (true) {
-    std::cout << "$ ";
-    std::getline(std::cin, input);
+    char* input_cstr = readline("$ ");
+
+    if (!input_cstr) {
+      std::cout << "\n";
+      break;
+    }
+
+    std::string input(input_cstr);
+    free(input_cstr);
 
     std::vector<std::string> tokens = parseInput(input);
     Command cmd = parseCommand(tokens);

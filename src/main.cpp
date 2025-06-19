@@ -121,8 +121,11 @@ const std::vector<std::string> BUILTIN_COMMANDS = {
   "echo",
   "type",
   "pwd",
-  "cd"
+  "cd",
+  "history",
 };
+
+std::vector<std::string> HISTORY_COMMANDS;
 
 bool is_builtin(const std::string& command) {
     return std::find(BUILTIN_COMMANDS.begin(), BUILTIN_COMMANDS.end(), command) 

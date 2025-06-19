@@ -341,6 +341,20 @@ void executeCommand(const Command& cmd) {
             file << history_commands[i]->line << "\n";
           }
           file.close();
+        } else if (cmd.args[1] == "-a") {
+          std::string history_file = cmd.args[2];
+          std::ofstream file(history_file, std::ios::app);
+
+          if (!file) {
+            std::cerr << "history: " << history_file << ": Could not open file for appending\n";
+            return;
+          }
+
+          HIST_ENTRY **history_commands = history_list();
+          for (int i = 0; history_commands[i]; i++) {
+            file << history_commands[i]->line << "\n";
+          }
+          file.close();
         } else {
           int cnt = std::stoi(cmd.args[1]);
           int total = history_length;

@@ -313,12 +313,28 @@ void executeCommand(const Command& cmd) {
           std::cout << "    " << i + 1 << "  " << history_commands[i]->line << "\n";
         }
       } else {
-        int cnt = std::stoi(cmd.args[1]);
-        int total = history_length;
-        int start = std::max(0, total - cnt);
-        for (int i = start; i < total; i++) {
-          if (history_commands[i]) {
-            std::cout << "    " << i + 1 << "  " << history_commands[i]->line << "\n";
+        if (cmd.args[1] == "-r") {
+          std::string history_file = cmd.args[2];
+          std::ifstream file(history_file);
+
+          if (!file) {
+            std::cerr << "history: " << history_file << ": No such file or directory\n";
+            return;
+          }
+
+          std::string line;
+          while (std::getline(file, line)) {
+            add_history(line.c_str());
+          }
+          file.close();
+        } else {
+          int cnt = std::stoi(cmd.args[1]);
+          int total = history_length;
+          int start = std::max(0, total - cnt);
+          for (int i = start; i < total; i++) {
+            if (history_commands[i]) {
+              std::cout << "    " << i + 1 << "  " << history_commands[i]->line << "\n";
+            }
           }
         }
       }

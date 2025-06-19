@@ -125,7 +125,7 @@ const std::vector<std::string> BUILTIN_COMMANDS = {
   "history",
 };
 
-std::vector<std::string> HISTORY_COMMANDS;
+std::vector<std::string> history_commands;
 
 bool is_builtin(const std::string& command) {
     return std::find(BUILTIN_COMMANDS.begin(), BUILTIN_COMMANDS.end(), command) 
@@ -307,6 +307,10 @@ void executeCommand(const Command& cmd) {
       } catch (const std::filesystem::filesystem_error& e) {
         std::cerr << "cd: " << cmd.args[1] << ": No such file or directory \n";
       }
+    } else if (command == "history") {
+      for (int i = 0; i < history_commands.size(); i++) {
+        std::cout << "    " << i + 1 << "  " << history_commands[i] << "\n";
+      }
     } else {
       std::string path = find_in_path(command);
       if (!path.empty()) {
@@ -421,6 +425,10 @@ int main() {
 
     if (!commands.empty()) {
       executePipeline(commands);
+    }
+
+    if (!input.empty()) {
+      history_commands.push_back(input);
     }
   }
 }

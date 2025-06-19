@@ -275,7 +275,6 @@ void executeCommand(const Command& cmd) {
     if (command == "exit" && cmd.args.size() == 2 && cmd.args[1] == "0") {
       exit(0);
     } else if (command == "echo") {
-      std::cout << "LMAO";
       for (size_t i = 1; i < cmd.args.size(); i++) {
         std::cout << cmd.args[i];
         if (i < cmd.args.size() - 1) std::cout << " ";

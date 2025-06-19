@@ -230,12 +230,15 @@ bool create_directories_for_file(const std::string& filepath) {
 }
 
 void executeCommand(const Command& cmd) {
+  int stdout_backup = -1, stderr_backup = -1;
+
   if (cmd.has_output_redirect) {
     if (!create_directories_for_file(cmd.output_file)) {
       std::cerr << "Error creating directories for output file: " << cmd.output_file << "\n";
       return;
     }
 
+    stdout_backup = dup(STDOUT_FILENO);
     int flags = O_WRONLY | O_CREAT;
     flags |= cmd.output_append ? O_APPEND : O_TRUNC;
 
@@ -243,6 +246,9 @@ void executeCommand(const Command& cmd) {
     if (fd != -1) {
       dup2(fd, STDOUT_FILENO);
       close(fd);
+    } else {
+      perror("open output file");
+      exit(EXIT_FAILURE);
     }
   }
 
@@ -252,6 +258,7 @@ void executeCommand(const Command& cmd) {
       return;
     }
 
+    stderr_backup = dup(STDERR_FILENO);
     int flags = O_WRONLY | O_CREAT;
     flags |= cmd.error_append ? O_APPEND : O_TRUNC;
 
@@ -268,9 +275,10 @@ void executeCommand(const Command& cmd) {
     if (command == "exit" && cmd.args.size() == 2 && cmd.args[1] == "0") {
       exit(0);
     } else if (command == "echo") {
+      std::cout << "LMAO";
       for (size_t i = 1; i < cmd.args.size(); i++) {
         std::cout << cmd.args[i];
-        if (i < cmd.args.size() -1) std::cout << " ";
+        if (i < cmd.args.size() - 1) std::cout << " ";
       }
       std::cout << "\n";
     } else if (command == "type") {
@@ -311,6 +319,15 @@ void executeCommand(const Command& cmd) {
         std::cerr << command << ": command not found\n";
       }
     }
+  }
+
+  if (stdout_backup != -1) {
+    dup2(stdout_backup, STDOUT_FILENO);
+    close(stdout_backup);
+  }
+  if (stderr_backup != -1) {
+    dup2(stderr_backup, STDERR_FILENO);
+    close(stderr_backup);
   }
 }
 

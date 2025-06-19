@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+#include <readline/history.h>
 
 struct Command {
   std::vector<std::string> args;
@@ -124,8 +125,6 @@ const std::vector<std::string> BUILTIN_COMMANDS = {
   "cd",
   "history",
 };
-
-std::vector<std::string> history_commands;
 
 bool is_builtin(const std::string& command) {
     return std::find(BUILTIN_COMMANDS.begin(), BUILTIN_COMMANDS.end(), command) 
@@ -308,15 +307,18 @@ void executeCommand(const Command& cmd) {
         std::cerr << "cd: " << cmd.args[1] << ": No such file or directory \n";
       }
     } else if (command == "history") {
+      HIST_ENTRY **history_commands = history_list();
       if (cmd.args.size() == 1) {
-        for (int i = 0; i < history_commands.size(); i++) {
-          std::cout << "    " << i + 1 << "  " << history_commands[i] << "\n";
+        for (int i = 0; history_commands[i]; i++) {
+          std::cout << "    " << i + 1 << "  " << history_commands[i]->line << "\n";
         }
       } else {
         int cnt = std::stoi(cmd.args[1]);
-        for (int i = history_commands.size() - cnt; i < history_commands.size(); i++) {
-          if (i >= 0) {
-            std::cout << "    " << i + 1 << "  " << history_commands[i] << "\n";
+        int total = history_length;
+        int start = std::max(0, total - cnt);
+        for (int i = start; i < total; i++) {
+          if (history_commands[i]) {
+            std::cout << "    " << i + 1 << "  " << history_commands[i]->line << "\n";
           }
         }
       }
@@ -413,6 +415,8 @@ int main() {
   std::cout << std::unitbuf;
   std::cerr << std::unitbuf;
 
+  using_history();
+
   rl_attempted_completion_function = command_completion;
 
   PATH_COMMANDS = get_path_commands();
@@ -433,7 +437,7 @@ int main() {
     std::vector<Command> commands = parseCommand(tokens);
 
     if (!commands.empty()) {
-      history_commands.push_back(input);
+      add_history(input.c_str());
       executePipeline(commands);
     }
   }

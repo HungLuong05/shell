@@ -216,8 +216,26 @@ char** command_completion(const char* text, int start, int end) {
   return rl_completion_matches(text, command_generator);
 }
 
+bool create_directories_for_file(const std::string& filepath) {
+  size_t last_slash = filepath.find_last_of("/");
+  if (last_slash == std::string::npos) return true; // No directory
+
+  std::string dir = filepath.substr(0, last_slash);
+  try {
+    std::filesystem::create_directories(dir);
+    return true;
+  } catch (const std::filesystem::filesystem_error& e) {
+    return false;
+  }
+}
+
 void executeCommand(const Command& cmd) {
   if (cmd.has_output_redirect) {
+    if (!create_directories_for_file(cmd.output_file)) {
+      std::cerr << "Error creating directories for output file: " << cmd.output_file << "\n";
+      return;
+    }
+
     int flags = O_WRONLY | O_CREAT;
     flags |= cmd.output_append ? O_APPEND : O_TRUNC;
 
@@ -225,12 +243,15 @@ void executeCommand(const Command& cmd) {
     if (fd != -1) {
       dup2(fd, STDOUT_FILENO);
       close(fd);
-    } else {
-      perror("error output file");
     }
   }
 
   if (cmd.has_error_redirect) {
+    if (!create_directories_for_file(cmd.error_file)) {
+      std::cerr << "Error creating directories for error file: " << cmd.error_file << "\n";
+      return;
+    }
+
     int flags = O_WRONLY | O_CREAT;
     flags |= cmd.error_append ? O_APPEND : O_TRUNC;
 
@@ -238,8 +259,6 @@ void executeCommand(const Command& cmd) {
     if (fd != -1) {
       dup2(fd, STDERR_FILENO);
       close(fd);
-    } else {
-      perror("error error file");
     }
   }
 
@@ -288,8 +307,6 @@ void executeCommand(const Command& cmd) {
         c_args.push_back(nullptr);
 
         execv(path.c_str(), c_args.data());
-        perror("execv failed");
-        exit(1);
       } else {
         std::cerr << command << ": command not found\n";
       }
@@ -299,7 +316,22 @@ void executeCommand(const Command& cmd) {
 
 void executePipeline(const std::vector<Command>& commands) {
   if (commands.size() == 1) {
-    executeCommand(commands[0]);
+    if (is_builtin(commands[0].args[0])) {
+      executeCommand(commands[0]);
+    } else {
+      pid_t pid = fork();
+      if (pid == 0) {
+        executeCommand(commands[0]);
+        exit(0);
+      } else if (pid > 0) {
+        int status;
+        waitpid(pid, &status, 0);
+      } else {
+        perror("fork failed");
+      }
+    }
+    
+    
     return;
   }
 

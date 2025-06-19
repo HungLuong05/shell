@@ -250,7 +250,8 @@ void executeCommand(const Command& cmd) {
       exit(0);
     } else if (command == "echo") {
       for (size_t i = 1; i < cmd.args.size(); i++) {
-        std::cout << cmd.args[i] << " ";
+        std::cout << cmd.args[i];
+        if (i < cmd.args.size() -1) std::cout << " ";
       }
       std::cout << "\n";
     } else if (command == "type") {

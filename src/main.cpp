@@ -8,6 +8,9 @@
 #include <filesystem>
 #include <readline/readline.h>
 #include <cstring>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <fcntl.h>
 
 struct Command {
   std::vector<std::string> args;
@@ -61,7 +64,8 @@ std::vector<std::string> parseInput(const std::string& input) {
   return args;
 }
 
-Command parseCommand(std::vector<std::string>& tokens) {
+std::vector<Command> parseCommand(std::vector<std::string>& tokens) {
+  std::vector<Command> commands;
   Command cmd;
 
   for (size_t i = 0; i < tokens.size(); i++) {
@@ -95,12 +99,21 @@ Command parseCommand(std::vector<std::string>& tokens) {
         cmd.error_append = true;
         i++;
       }
+    } else if (token == "|") {
+      if (!cmd.args.empty()) {
+        commands.push_back(cmd);
+        cmd = Command();
+      }
     } else {
       cmd.args.push_back(token);
     }
   }
 
-  return cmd;
+  if (!cmd.args.empty()) {
+    commands.push_back(cmd);
+  }
+
+  return commands;
 }
 
 const std::vector<std::string> BUILTIN_COMMANDS = {
@@ -203,6 +216,133 @@ char** command_completion(const char* text, int start, int end) {
   return rl_completion_matches(text, command_generator);
 }
 
+void executeCommand(const Command& cmd) {
+  if (cmd.has_output_redirect) {
+    int flags = O_WRONLY | O_CREAT;
+    flags |= cmd.output_append ? O_APPEND : O_TRUNC;
+
+    int fd = open(cmd.output_file.c_str(), flags, 0644);
+    if (fd != -1) {
+      dup2(fd, STDOUT_FILENO);
+      close(fd);
+    } else {
+      perror("error output file");
+    }
+  }
+
+  if (cmd.has_error_redirect) {
+    int flags = O_WRONLY | O_CREAT;
+    flags |= cmd.error_append ? O_APPEND : O_TRUNC;
+
+    int fd = open(cmd.error_file.c_str(), flags, 0644);
+    if (fd != -1) {
+      dup2(fd, STDERR_FILENO);
+      close(fd);
+    } else {
+      perror("error error file");
+    }
+  }
+
+  if (!cmd.args.empty()) {
+    std::string command = cmd.args[0];
+
+    if (command == "exit" && cmd.args.size() == 2 && cmd.args[1] == "0") {
+      exit(0);
+    } else if (command == "echo") {
+      for (size_t i = 1; i < cmd.args.size(); i++) {
+        std::cout << cmd.args[i] << " ";
+      }
+      std::cout << "\n";
+    } else if (command == "type") {
+      if (cmd.args.size() == 2 && is_builtin(cmd.args[1])) {
+        std::cout << cmd.args[1] << " is a shell builtin\n";
+      } else {
+        std::string path = find_in_path(cmd.args[1]);
+        if (!path.empty()) {
+          std::cout << cmd.args[1] << " is " << path << "\n";
+        } else {
+          std::cerr << cmd.args[1] << ": not found\n";
+        }
+      }
+    } else if (command == "pwd") {
+      std::cout << std::filesystem::current_path().string() << "\n";
+    } else if (command == "cd") {
+      std::string target_dir = cmd.args[1];
+      if (cmd.args[1] == "~") {
+        target_dir = getenv("HOME");
+      }
+
+      try {
+        std::filesystem::current_path(target_dir);
+      } catch (const std::filesystem::filesystem_error& e) {
+        std::cerr << "cd: " << cmd.args[1] << ": No such file or directory \n";
+      }
+    } else {
+      std::string path = find_in_path(command);
+      if (!path.empty()) {
+        std::vector<char*> c_args;
+        for (const auto& arg : cmd.args) {
+          c_args.push_back(const_cast<char*>(arg.c_str()));
+        }
+        c_args.push_back(nullptr);
+
+        execv(path.c_str(), c_args.data());
+        perror("execv failed");
+        exit(1);
+      } else {
+        std::cerr << command << ": command not found\n";
+      }
+    }
+  }
+}
+
+void executePipeline(const std::vector<Command>& commands) {
+  if (commands.size() == 1) {
+    executeCommand(commands[0]);
+    return;
+  }
+
+  std::vector<int> pipes;
+
+  for (size_t i = 0; i < commands.size() - 1; i++) {
+    int pipefd[2];
+    if (pipe(pipefd) == -1) {
+      perror("pipe");
+      return;
+    }
+    pipes.push_back(pipefd[0]);
+    pipes.push_back(pipefd[1]);
+  }
+
+  for (size_t i = 0; i < commands.size(); i++) {
+    pid_t pid = fork();
+    if (pid == 0) {
+      if (i > 0) {
+        dup2(pipes[(i - 1) * 2], STDIN_FILENO);
+      }
+
+      if (i < commands.size() - 1) {
+        dup2(pipes[i * 2 + 1], STDOUT_FILENO);
+      }
+
+      for (int fd: pipes) {
+        close(fd);
+      }
+
+      executeCommand(commands[i]);
+      exit(0);
+    }
+  }
+
+  for (size_t i = 0; i < pipes.size(); i++) {
+    close(pipes[i]);
+  }
+
+  for (size_t i = 0; i < commands.size(); i++) {
+    wait(nullptr);
+  }
+}
+
 int main() {
   // Flush after every std::cout / std:cerr
   std::cout << std::unitbuf;
@@ -225,80 +365,10 @@ int main() {
     free(input_cstr);
 
     std::vector<std::string> tokens = parseInput(input);
-    Command cmd = parseCommand(tokens);
+    std::vector<Command> commands = parseCommand(tokens);
 
-    std::ofstream output_file;
-    std::ostream& output = [&]() -> std::ostream& {
-      if (cmd.has_output_redirect) {
-        if (cmd.output_append) {
-          output_file.open(cmd.output_file, std::ios::app);
-        } else {
-          output_file.open(cmd.output_file);
-        }
-        return output_file;
-      }
-      return std::cout;
-    }();
-
-    std::ofstream error_file;
-    std::ostream& error_output = [&]() -> std::ostream& {
-      if (cmd.has_error_redirect) {
-        if (cmd.error_append) {
-          error_file.open(cmd.error_file, std::ios::app);
-        } else {
-          error_file.open(cmd.error_file);
-        }
-        return error_file;
-      }
-      return std::cerr;
-    }();
-
-    if (!tokens.empty()) {
-      std::string command = cmd.args[0];
-
-      if (command == "exit" && cmd.args.size() == 2 && cmd.args[1] == "0") {
-        break;
-      } else if (command == "echo") {
-        if (cmd.args.size() == 1) {
-          output << "\n";
-        } else {
-          for (size_t i = 1; i < cmd.args.size(); i++) {
-            output << cmd.args[i] << " ";
-          }
-          output << "\n";
-        }
-      } else if (command == "type") {
-        if (cmd.args.size() == 2 && is_builtin(cmd.args[1])) {
-          output << cmd.args[1] << " is a shell builtin\n";
-        } else {
-          std::string path = find_in_path(cmd.args[1]);
-          if (!path.empty()) {
-            output << cmd.args[1] << " is " << path << "\n";
-          } else {
-            error_output << cmd.args[1] << ": not found\n";
-          }
-        }
-      } else if (command == "pwd") {
-        output << std::filesystem::current_path().string() << "\n";
-      } else if (command == "cd") {
-        std::string target_dir = cmd.args[1];
-        if (cmd.args[1] == "~") {
-          target_dir = getenv("HOME");
-        }
-
-        try {
-          std::filesystem::current_path(target_dir);
-        } catch (const std::filesystem::filesystem_error& e) {
-          error_output << "cd: " << cmd.args[1] << ": No such file or directory \n";
-        }
-      } else {
-        std::string path = find_in_path(command);
-        if (!path.empty()) {
-          int res = system(input.c_str());
-        } else {
-          error_output << command << ": command not found\n";
-        }
-      }
+    if (!commands.empty()) {
+      executePipeline(commands);
     }
   }
 }

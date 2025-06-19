@@ -424,11 +424,8 @@ int main() {
     std::vector<Command> commands = parseCommand(tokens);
 
     if (!commands.empty()) {
-      executePipeline(commands);
-    }
-
-    if (!input.empty()) {
       history_commands.push_back(input);
+      executePipeline(commands);
     }
   }
 }

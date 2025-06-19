@@ -308,8 +308,17 @@ void executeCommand(const Command& cmd) {
         std::cerr << "cd: " << cmd.args[1] << ": No such file or directory \n";
       }
     } else if (command == "history") {
-      for (int i = 0; i < history_commands.size(); i++) {
-        std::cout << "    " << i + 1 << "  " << history_commands[i] << "\n";
+      if (cmd.args.size() == 1) {
+        for (int i = 0; i < history_commands.size(); i++) {
+          std::cout << "    " << i + 1 << "  " << history_commands[i] << "\n";
+        }
+      } else {
+        int cnt = std::stoi(cmd.args[1]);
+        for (int i = history_commands.size() - cnt; i < history_commands.size(); i++) {
+          if (i >= 0) {
+            std::cout << "    " << i + 1 << "  " << history_commands[i] << "\n";
+          }
+        }
       }
     } else {
       std::string path = find_in_path(command);

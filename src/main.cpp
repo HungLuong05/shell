@@ -32,7 +32,7 @@ const std::vector<std::string> BUILTIN_COMMANDS = {
   "history",
 };
 
-int last_saved_history_position = 0;
+int next_history_position = 0;
 
 std::vector<std::string> parseInput(const std::string& input) {
   std::vector<std::string> args;
@@ -355,12 +355,12 @@ void executeCommand(const Command& cmd) {
           }
 
           HIST_ENTRY **history_commands = history_list();
-          for (int i = last_saved_history_position + 1; history_commands[i]; i++) {
+          for (int i = next_history_position; history_commands[i]; i++) {
             file << history_commands[i]->line << "\n";
           }
           file.close();
 
-          last_saved_history_position = history_length - 1;
+          next_history_position = history_length;
         } else {
           int cnt = std::stoi(cmd.args[1]);
           int total = history_length;

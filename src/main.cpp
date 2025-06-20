@@ -467,6 +467,13 @@ int main() {
 
   using_history();
 
+  const char* histfile_env = getenv("HISTFILE");
+  if (histfile_env) {
+    std::string histfile(histfile_env);
+    read_history(histfile.c_str());
+    next_history_position = history_length;
+  }
+
   rl_attempted_completion_function = command_completion;
 
   PATH_COMMANDS = get_path_commands();

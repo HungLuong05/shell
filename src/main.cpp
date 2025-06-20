@@ -498,4 +498,10 @@ int main() {
       executePipeline(commands);
     }
   }
+
+  const char* histfile = getenv("HISTFILE");
+  if (histfile) {
+    write_history(histfile);
+  }
+  return 0;
 }

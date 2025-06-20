@@ -279,6 +279,10 @@ void executeCommand(const Command& cmd) {
     std::string command = cmd.args[0];
 
     if (command == "exit" && cmd.args.size() == 2 && cmd.args[1] == "0") {
+      const char* histfile = getenv("HISTFILE");
+      if (histfile) {
+        write_history(histfile);
+      }
       exit(0);
     } else if (command == "echo") {
       for (size_t i = 1; i < cmd.args.size(); i++) {
@@ -497,11 +501,11 @@ int main() {
       add_history(input.c_str());
       executePipeline(commands);
     }
-
-    const char* histfile = getenv("HISTFILE");
-    if (histfile) {
-      write_history(histfile);
-    }
-    return 0;
   }
+
+  const char* histfile = getenv("HISTFILE");
+  if (histfile) {
+    write_history(histfile);
+  }
+  return 0;
 }

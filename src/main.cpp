@@ -23,6 +23,17 @@ struct Command {
   bool error_append = false;
 };
 
+const std::vector<std::string> BUILTIN_COMMANDS = {
+  "exit",
+  "echo",
+  "type",
+  "pwd",
+  "cd",
+  "history",
+};
+
+int last_saved_history_position = 0;
+
 std::vector<std::string> parseInput(const std::string& input) {
   std::vector<std::string> args;
   std::string current_arg;
@@ -117,14 +128,7 @@ std::vector<Command> parseCommand(std::vector<std::string>& tokens) {
   return commands;
 }
 
-const std::vector<std::string> BUILTIN_COMMANDS = {
-  "exit",
-  "echo",
-  "type",
-  "pwd",
-  "cd",
-  "history",
-};
+
 
 bool is_builtin(const std::string& command) {
     return std::find(BUILTIN_COMMANDS.begin(), BUILTIN_COMMANDS.end(), command) 

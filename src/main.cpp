@@ -355,10 +355,12 @@ void executeCommand(const Command& cmd) {
           }
 
           HIST_ENTRY **history_commands = history_list();
-          for (int i = 0; history_commands[i]; i++) {
+          for (int i = last_saved_history_position + 1; history_commands[i]; i++) {
             file << history_commands[i]->line << "\n";
           }
           file.close();
+
+          last_saved_history_position = history_length - 1;
         } else {
           int cnt = std::stoi(cmd.args[1]);
           int total = history_length;

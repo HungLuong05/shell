@@ -497,11 +497,11 @@ int main() {
       add_history(input.c_str());
       executePipeline(commands);
     }
-  }
 
-  const char* histfile = getenv("HISTFILE");
-  if (histfile) {
-    write_history(histfile);
+    const char* histfile = getenv("HISTFILE");
+    if (histfile) {
+      write_history(histfile);
+    }
+    return 0;
   }
-  return 0;
 }

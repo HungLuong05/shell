@@ -1,23 +1,10 @@
 #include <iostream>
-#include <string>
-#include <vector>
-#include <sstream>
-#include <fstream>
-#include <algorithm>
-#include <sys/stat.h>
-#include <filesystem>
+
 #include <readline/readline.h>
-#include <cstring>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <fcntl.h>
 #include <readline/history.h>
 
-#include "command.hpp"
-#include "utils.hpp"
 #include "parser.hpp"
 #include "path.hpp"
-#include "builtins.hpp"
 #include "completion.hpp"
 #include "history.hpp"
 #include "executor.hpp"

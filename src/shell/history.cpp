@@ -1,0 +1,1 @@
+// int next_history_position = 0;

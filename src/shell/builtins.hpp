@@ -8,7 +8,7 @@
 extern const std::vector<std::string> BUILTIN_COMMANDS;
 
 bool is_builtin(const std::string& command);
-void executeEcho(const Command& cmd);
-void executeType(const Command& cmd);
-void executePwd();
-void executeCd(const Command& cmd);
+void execute_echo(const Command& cmd);
+void execute_type(const Command& cmd);
+void execute_pwd();
+void execute_cd(const Command& cmd);

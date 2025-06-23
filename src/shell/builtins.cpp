@@ -19,7 +19,7 @@ bool is_builtin(const std::string& command) {
            != BUILTIN_COMMANDS.end();
 }
 
-void executeEcho(const Command& cmd) {
+void execute_echo(const Command& cmd) {
     for (size_t i = 1; i < cmd.args.size(); i++) {
         std::cout << cmd.args[i];
         if (i < cmd.args.size() - 1) std::cout << " ";
@@ -27,7 +27,7 @@ void executeEcho(const Command& cmd) {
     std::cout << "\n";
 }
 
-void executeType(const Command& cmd) {
+void execute_type(const Command& cmd) {
     if (cmd.args.size() == 2 && is_builtin(cmd.args[1])) {
         std::cout << cmd.args[1] << " is a shell builtin\n";
     } else {
@@ -40,11 +40,11 @@ void executeType(const Command& cmd) {
     }
 }
 
-void executePwd() {
+void execute_pwd() {
     std::cout << std::filesystem::current_path().string() << "\n";
 }
 
-void executeCd(const Command& cmd) {
+void execute_cd(const Command& cmd) {
     std::string target_dir = cmd.args[1];
     if (cmd.args[1] == "~") {
         target_dir = getenv("HOME");

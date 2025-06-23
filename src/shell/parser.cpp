@@ -1,6 +1,6 @@
 #include "parser.hpp"
 
-std::vector<std::string> parseInput(const std::string& input) {
+std::vector<std::string> parse_input(const std::string& input) {
   std::vector<std::string> args;
   std::string current_arg;
   bool in_single_quotes = false;
@@ -42,7 +42,7 @@ std::vector<std::string> parseInput(const std::string& input) {
   return args;
 }
 
-std::vector<Command> parseCommand(std::vector<std::string>& tokens) {
+std::vector<Command> parse_command(std::vector<std::string>& tokens) {
   std::vector<Command> commands;
   Command cmd;
 

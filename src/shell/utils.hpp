@@ -1,5 +1,5 @@
-// #pragma once
+#pragma once
 
-// #include <string>
+#include <string>
 
-// bool create_directories_for_file(const std::string& filepath);
+bool create_directories_for_file(const std::string& filepath);

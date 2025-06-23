@@ -58,13 +58,13 @@ void execute_command(const Command& cmd) {
       save_history_on_exit();
       exit(0);
     } else if (command == "echo") {
-      executeEcho(cmd);
+      execute_echo(cmd);
     } else if (command == "type") {
-      executeType(cmd);
+      execute_type(cmd);
     } else if (command == "pwd") {
-      executePwd();
+      execute_pwd();
     } else if (command == "cd") {
-      executeCd(cmd);
+      execute_cd(cmd);
     } else if (command == "history") {
       handle_history_command(cmd);
     } else {

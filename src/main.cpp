@@ -71,35 +71,13 @@ void executeCommand(const Command& cmd) {
       }
       exit(0);
     } else if (command == "echo") {
-      for (size_t i = 1; i < cmd.args.size(); i++) {
-        std::cout << cmd.args[i];
-        if (i < cmd.args.size() - 1) std::cout << " ";
-      }
-      std::cout << "\n";
+      executeEcho(cmd);
     } else if (command == "type") {
-      if (cmd.args.size() == 2 && is_builtin(cmd.args[1])) {
-        std::cout << cmd.args[1] << " is a shell builtin\n";
-      } else {
-        std::string path = find_in_path(cmd.args[1]);
-        if (!path.empty()) {
-          std::cout << cmd.args[1] << " is " << path << "\n";
-        } else {
-          std::cerr << cmd.args[1] << ": not found\n";
-        }
-      }
+      executeType(cmd);
     } else if (command == "pwd") {
-      std::cout << std::filesystem::current_path().string() << "\n";
+      executePwd();
     } else if (command == "cd") {
-      std::string target_dir = cmd.args[1];
-      if (cmd.args[1] == "~") {
-        target_dir = getenv("HOME");
-      }
-
-      try {
-        std::filesystem::current_path(target_dir);
-      } catch (const std::filesystem::filesystem_error& e) {
-        std::cerr << "cd: " << cmd.args[1] << ": No such file or directory \n";
-      }
+      executeCd(cmd);
     } else if (command == "history") {
       handle_history_command(cmd);
     } else {

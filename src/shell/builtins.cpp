@@ -19,40 +19,40 @@ bool is_builtin(const std::string& command) {
            != BUILTIN_COMMANDS.end();
 }
 
-// void executeEcho(const std::vector<std::string>& args) {
-//     for (size_t i = 1; i < args.size(); i++) {
-//         std::cout << args[i];
-//         if (i < args.size() - 1) std::cout << " ";
-//     }
-//     std::cout << "\n";
-// }
+void executeEcho(const Command& cmd) {
+    for (size_t i = 1; i < cmd.args.size(); i++) {
+        std::cout << cmd.args[i];
+        if (i < cmd.args.size() - 1) std::cout << " ";
+    }
+    std::cout << "\n";
+}
 
-// void executeType(const std::vector<std::string>& args) {
-//     if (args.size() == 2 && is_builtin(args[1])) {
-//         std::cout << args[1] << " is a shell builtin\n";
-//     } else {
-//         std::string path = find_in_path(args[1]);
-//         if (!path.empty()) {
-//             std::cout << args[1] << " is " << path << "\n";
-//         } else {
-//             std::cerr << args[1] << ": not found\n";
-//         }
-//     }
-// }
+void executeType(const Command& cmd) {
+    if (cmd.args.size() == 2 && is_builtin(cmd.args[1])) {
+        std::cout << cmd.args[1] << " is a shell builtin\n";
+    } else {
+        std::string path = find_in_path(cmd.args[1]);
+        if (!path.empty()) {
+            std::cout << cmd.args[1] << " is " << path << "\n";
+        } else {
+            std::cerr << cmd.args[1] << ": not found\n";
+        }
+    }
+}
 
-// void executePwd() {
-//     std::cout << std::filesystem::current_path().string() << "\n";
-// }
+void executePwd() {
+    std::cout << std::filesystem::current_path().string() << "\n";
+}
 
-// void executeCd(const std::vector<std::string>& args) {
-//     std::string target_dir = args[1];
-//     if (args[1] == "~") {
-//         target_dir = getenv("HOME");
-//     }
+void executeCd(const Command& cmd) {
+    std::string target_dir = cmd.args[1];
+    if (cmd.args[1] == "~") {
+        target_dir = getenv("HOME");
+    }
 
-//     try {
-//         std::filesystem::current_path(target_dir);
-//     } catch (const std::filesystem::filesystem_error& e) {
-//         std::cerr << "cd: " << args[1] << ": No such file or directory \n";
-//     }
-// }
+    try {
+        std::filesystem::current_path(target_dir);
+    } catch (const std::filesystem::filesystem_error& e) {
+        std::cerr << "cd: " << cmd.args[1] << ": No such file or directory \n";
+    }
+}

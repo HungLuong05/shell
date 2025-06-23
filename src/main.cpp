@@ -65,10 +65,7 @@ void executeCommand(const Command& cmd) {
     std::string command = cmd.args[0];
 
     if (command == "exit" && cmd.args.size() == 2 && cmd.args[1] == "0") {
-      const char* histfile = getenv("HISTFILE");
-      if (histfile) {
-        write_history(histfile);
-      }
+      save_history_on_exit();
       exit(0);
     } else if (command == "echo") {
       executeEcho(cmd);

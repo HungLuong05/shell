@@ -17,24 +17,9 @@
 #include "utils.hpp"
 #include "parser.hpp"
 #include "path.hpp"
-
-const std::vector<std::string> BUILTIN_COMMANDS = {
-  "exit",
-  "echo",
-  "type",
-  "pwd",
-  "cd",
-  "history",
-};
+#include "builtins.hpp"
 
 int next_history_position = 0;
-
-
-
-bool is_builtin(const std::string& command) {
-    return std::find(BUILTIN_COMMANDS.begin(), BUILTIN_COMMANDS.end(), command) 
-           != BUILTIN_COMMANDS.end();
-}
 
 char* command_generator(const char* text, int state) {
   static size_t builtin_index = 0, path_index = 0;

@@ -1,8 +1,8 @@
-// #pragma once
+#pragma once
 
-// #include <vector>
-// #include <string>
+#include <vector>
+#include <string>
 
-// extern const std::vector<std::string> BUILTIN_COMMANDS;
+extern const std::vector<std::string> BUILTIN_COMMANDS;
 
-// bool is_builtin(const std::string& command);
+bool is_builtin(const std::string& command);

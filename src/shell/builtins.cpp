@@ -1,23 +1,23 @@
-// #include "builtins.hpp"
-// #include "path.hpp"
+#include "builtins.hpp"
+#include "path.hpp"
 
-// #include <algorithm>
-// #include <iostream>
-// #include <filesystem>
+#include <algorithm>
+#include <iostream>
+#include <filesystem>
 
-// const std::vector<std::string> BUILTIN_COMMANDS = {
-//   "exit",
-//   "echo",
-//   "type",
-//   "pwd",
-//   "cd",
-//   "history",
-// };
+const std::vector<std::string> BUILTIN_COMMANDS = {
+  "exit",
+  "echo",
+  "type",
+  "pwd",
+  "cd",
+  "history",
+};
 
-// bool is_builtin(const std::string& command) {
-//     return std::find(BUILTIN_COMMANDS.begin(), BUILTIN_COMMANDS.end(), command) 
-//            != BUILTIN_COMMANDS.end();
-// }
+bool is_builtin(const std::string& command) {
+    return std::find(BUILTIN_COMMANDS.begin(), BUILTIN_COMMANDS.end(), command) 
+           != BUILTIN_COMMANDS.end();
+}
 
 // void executeEcho(const std::vector<std::string>& args) {
 //     for (size_t i = 1; i < args.size(); i++) {

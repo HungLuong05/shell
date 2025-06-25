@@ -48,6 +48,9 @@ void execute_command(const Command& cmd) {
     if (fd != -1) {
       dup2(fd, STDERR_FILENO);
       close(fd);
+    } else {
+      perror("open error file");
+      exit(EXIT_FAILURE);
     }
   }
 

@@ -4,7 +4,7 @@
 
 bool create_directories_for_file(const std::string& filepath) {
   size_t last_slash = filepath.find_last_of("/");
-  if (last_slash == std::string::npos) return true; // No directory
+  if (last_slash == std::string::npos) return true;
 
   std::string dir = filepath.substr(0, last_slash);
   try {

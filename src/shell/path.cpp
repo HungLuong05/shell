@@ -44,14 +44,10 @@ std::vector<std::string> get_path_commands() {
   while (std::getline(iss, dir, ':')) {
     if (dir.empty()) continue;
 
-    try {
-      for (const auto& entry : std::filesystem::directory_iterator(dir)) {
-        if (entry.is_regular_file() && is_executable(entry.path().string())) {
-          commands.push_back(entry.path().filename().string());
-        }
+    for (const auto& entry : std::filesystem::directory_iterator(dir)) {
+      if (entry.is_regular_file() && is_executable(entry.path().string())) {
+        commands.push_back(entry.path().filename().string());
       }
-    } catch (const std::filesystem::filesystem_error& e) {
-      // Ignore errors related to directory access for now
     }
   }
 

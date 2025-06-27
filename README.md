@@ -181,13 +181,6 @@ The shell provides informative error messages for:
 - Pipeline failures
 - History file operations
 
-## Contributing
-
-1. Follow the existing code style and structure
-2. Add appropriate error handling
-3. Update tests for new functionality
-4. Document new features in this README
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
